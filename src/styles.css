@@ -34,8 +34,9 @@ label{display:block;font-size:13px;font-weight:600;margin:14px 0 0}label.inline{
 .side nav a:hover{background:#f1f4fb;color:var(--ink)}.side nav a.active{background:#e8eefc;color:var(--brand)}
 .profile{display:flex;align-items:center;gap:10px;padding:12px 8px 0;border-top:1px solid var(--line)}.profile div{flex:1;min-width:0}.profile b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profile small{color:var(--muted);font-size:12px}
 .avatar{width:36px;height:36px;border-radius:50%;background:#e8eefc;color:var(--brand);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;font-size:14px;min-height:56px}
-.wrap{padding:4px 32px 48px;max-width:1200px}
+.content{min-width:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;font-size:14px;min-height:56px;max-width:1240px;margin:0 auto;width:100%}
+.wrap{padding:4px 32px 48px;max-width:1240px;margin:0 auto;width:100%}
 .pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}.pagehead p{margin:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px rgba(23,32,58,.04)}
 .form{max-width:680px}.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
