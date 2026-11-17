@@ -9,8 +9,12 @@ const PRIORITIES = ['Low', 'Medium', 'High', 'Critical']
 const DEPARTMENTS = ['Unassigned', 'IT Services', 'Facilities', 'Transport Office', 'Academic Affairs', 'Student Affairs', 'Registrar']
 
 /* ---------- storage ---------- */
-const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-const tok = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+const env = process.env
+// Find the Redis credentials whatever prefix the Vercel integration used (KV_, STORAGE_, UPSTASH_ ...)
+const urlKey = ['KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL'].find(k => env[k]) || Object.keys(env).find(k => /_REST_API_URL$/.test(k) && env[k])
+const tokKey = urlKey && ([urlKey.replace(/URL$/, 'TOKEN'), 'UPSTASH_REDIS_REST_TOKEN'].find(k => env[k]) || Object.keys(env).find(k => /_REST_API_TOKEN$/.test(k) && env[k]))
+const url = urlKey && env[urlKey]
+const tok = tokKey && env[tokKey]
 function memoryDb() {
   const g = (globalThis.__scaMem ||= { h: {}, k: {} })
   return {
@@ -24,7 +28,8 @@ function memoryDb() {
   }
 }
 const db = url && tok ? new Redis({ url, token: tok }) : memoryDb()
-const SECRET = process.env.AUTH_SECRET || tok || 'dev-secret-change-me'
+const SECRET = env.AUTH_SECRET || tok || 'dev-secret-change-me'
+export const storage = db.memory ? 'memory' : 'redis'
 
 /* ---------- crypto ---------- */
 const hashPw = (pw, salt = crypto.randomBytes(16).toString('hex')) => `${salt}:${crypto.scryptSync(pw, salt, 32).toString('hex')}`
@@ -125,6 +130,9 @@ export default async function handler(req, res) {
   try {
     let body = req.body; if (typeof body === 'string') body = JSON.parse(body || '{}')
     body ||= {}
+    // On Vercel, never fall back to temporary memory: data would silently disappear.
+    if (db.memory && env.VERCEL) throw new HttpError('Database is not connected. Connect Upstash Redis in the Vercel project (Storage tab) and redeploy.', 503)
+    if (body.action === 'status') return res.status(200).json({ storage })
     await ensureSeed()
     const fn = A[body.action]; if (!fn) throw new HttpError('Unknown action.')
     let user = null
