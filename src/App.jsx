@@ -159,7 +159,12 @@ function NewRequest() {
   const [manual, setManual] = useState(false); const [review, setReview] = useState(false)
   const rec = useMemo(() => recommendPriority(f.category, f.title + ' ' + f.description), [f.category, f.title, f.description])
   const prio = manual ? f.priority : rec.priority
-  const confirm = () => { const r = submitRequest({ ...f, priority: prio }); flash(`Request ${r.id} submitted successfully.`); nav('/dashboard') }
+  const [busy, setBusy] = useState(false)
+  const confirm = async () => {
+    setBusy(true)
+    try { const r = await submitRequest({ ...f, priority: prio }); flash(`Request ${r.id} submitted successfully.`); nav('/dashboard') }
+    catch (e) { flash(e.message, 'err'); setBusy(false) }
+  }
   return (
     <>
       <PageHead title="New request" sub="Tell us what's wrong and we'll route it to the right team." />
@@ -182,7 +187,7 @@ function NewRequest() {
           <label className="inline"><input type="checkbox" checked={manual} onChange={e => { setManual(e.target.checked); setF(x => ({ ...x, priority: rec.priority })) }} /> Choose a different priority</label>
           {manual && <select value={f.priority} onChange={e => setF({ ...f, priority: e.target.value })}>{PRIORITIES.map(p => <option key={p}>{p}</option>)}</select>}
         </div>
-        <div className="actions"><button className="ghost" onClick={() => setReview(false)}>Edit</button><button className="primary" autoFocus onClick={confirm}>Confirm &amp; submit as {prio}</button></div>
+        <div className="actions"><button className="ghost" onClick={() => setReview(false)}>Edit</button><button className="primary" autoFocus disabled={busy} onClick={confirm}>{busy ? 'Submitting…' : `Confirm & submit as ${prio}`}</button></div>
       </Modal>}
     </>
   )
@@ -242,7 +247,7 @@ function StudentDashboard() {
       {cur.status === 'Pending' && <div className="actions"><button className="danger" onClick={() => setCancel(true)}>Cancel request</button></div>}
     </Modal>}
     {cancel && cur && <Confirm danger title="Cancel this request?" body={`"${cur.title}" will be marked as cancelled and the team will stop working on it.`} confirmLabel="Yes, cancel request" onCancel={() => setCancel(false)}
-      onConfirm={() => { updateRequest(cur.id, { status: 'Cancelled' }, 'Student'); setCancel(false); flash('Request cancelled.') }} />}
+      onConfirm={async () => { try { await updateRequest(cur.id, { status: 'Cancelled' }); flash('Request cancelled.') } catch (e) { flash(e.message, 'err') } setCancel(false) }} />}
   </>)
 }
 
@@ -280,10 +285,11 @@ function ManageModal({ r, onClose }) {
   const [d, setD] = useState({ status: r.status, priority: r.priority, department: r.department, note: '' })
   const [ask, setAsk] = useState(false)
   const changed = d.status !== r.status || d.priority !== r.priority || d.department !== r.department || d.note.trim()
-  const save = () => {
+  const save = async () => {
     const patch = {}; ['status', 'priority', 'department'].forEach(k => { if (d[k] !== r[k]) patch[k] = d[k] })
     if (d.note.trim()) patch.note = d.note.trim()
-    updateRequest(r.id, patch); flash('Changes saved. Student notified.'); onClose()
+    try { await updateRequest(r.id, patch); flash('Changes saved. Student notified.'); onClose() }
+    catch (e) { flash(e.message, 'err'); setAsk(false) }
   }
   return (<>
     <Modal onClose={onClose} wide>

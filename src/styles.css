@@ -77,3 +77,4 @@ tr.click{cursor:pointer}tr.click:hover,tbody tr:hover{background:#f7f9ff}
 .wrap,.topbar{padding-left:16px;padding-right:16px}.steps{flex-direction:column}.two{grid-template-columns:1fr}}
 
 .row.between{justify-content:space-between}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:12px;background:#e8eefc;color:#25479a;border-radius:6px;padding:3px 8px}.chip.bad{background:#f9dcdc;color:#9a2222}.chip.good{background:#dff3ea;color:#176b47}
+.toast.err{background:#9a2222}.toast.err svg{color:#fff}
